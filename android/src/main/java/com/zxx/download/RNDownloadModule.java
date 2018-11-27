@@ -1,10 +1,12 @@
 package com.zxx.download;
 
 import android.Manifest;
-import android.webkit.DownloadListener;
+import android.content.Intent;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -13,9 +15,14 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.zxx.download.okhttp.DownloadListner;
 import com.zxx.download.okhttp.DownloadManager;
 import com.zxx.download.okhttp.FilePoint;
+import com.zxx.download.okhttp.apk.ApkListener;
+import com.zxx.download.okhttp.apk.ApkManager;
+import com.zxx.download.okhttp.util.FileUtil;
 import com.zxx.download.okhttp.util.NetUtil;
 import com.zxx.download.okhttp.util.PermissionUtil;
 
+import java.io.File;
+import java.security.Permission;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +65,7 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
               !PermissionUtil.hasPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
               !PermissionUtil.hasPermission(reactContext, Manifest.permission.READ_EXTERNAL_STORAGE) ||
               !PermissionUtil.hasPermission(reactContext, Manifest.permission.ACCESS_NETWORK_STATE)){
+        Toast.makeText(reactContext, "请先打开读写、访问网络和网络状态权限", Toast.LENGTH_SHORT);
         return;
       }
 
@@ -84,6 +92,7 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
             !PermissionUtil.hasPermission(reactContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
             !PermissionUtil.hasPermission(reactContext, Manifest.permission.READ_EXTERNAL_STORAGE) ||
             !PermissionUtil.hasPermission(reactContext, Manifest.permission.ACCESS_NETWORK_STATE)){
+      Toast.makeText(reactContext, "请先打开读写、访问网络和网络状态权限", Toast.LENGTH_SHORT);
       return;
     }
 
@@ -109,11 +118,54 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
     DownloadManager.getInstance(this.reactContext).cancel(url);
   }
 
+  /**
+   * 安装apk
+   * @param apkPath
+   */
+  @ReactMethod
+  public void install(String apkPath){
+    ApkManager.getInstance(createApkListener()).installApk(reactContext, apkPath);
+  }
+
+  /**
+   * 删除指定文件或文件夹下的所有东西
+   */
+  @ReactMethod
+  public void deleteFile(String dirPath){
+    FileUtil.deleteFolderFile(dirPath, true);
+  }
+
+  /**
+   * 打开安装未知应用的设置
+   */
+  @ReactMethod
+  public void openInstallUnknowSetting(){
+    Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+    reactContext.startActivity(intent);
+  }
+
+  /**
+   * 获取文件或文件夹下所有文件的大小
+   * @param promise
+   */
+  @ReactMethod
+  public void getFileSize(String filePath, Promise promise){
+    File file = new File(filePath);
+    long size = FileUtil.getFolderSize(file);
+    WritableMap map = Arguments.createMap();
+    map.putString("size", String.format("%d", size));
+    promise.resolve(map);
+  }
+
   private DownloadListner createDownloadListener(){
     return new DownloadListner() {
       @Override
       public void onFinished(FilePoint mFilePoint) {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onFinished", null);
+        WritableMap map = Arguments.createMap();
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onFinished", map);
       }
 
       @Override
@@ -122,27 +174,76 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
         map.putDouble("progress", progress);
         map.putDouble("cur", cur);
         map.putDouble("total", total);
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onProgress", map);
       }
 
       @Override
-      public void onCancel() {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCancel", null);
+      public void onCancel(FilePoint mFilePoint) {
+        WritableMap map = Arguments.createMap();
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCancel", map);
       }
 
       @Override
-      public void onCancelWifi() {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCancelWifi", null);
+      public void onCancelWifi(FilePoint mFilePoint) {
+        WritableMap map = Arguments.createMap();
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onCancelWifi", map);
       }
 
       @Override
-      public void onStart() {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onStart", null);
+      public void onStart(FilePoint mFilePoint) {
+        WritableMap map = Arguments.createMap();
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onStart", map);
       }
 
       @Override
-      public void onError() {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onError", null);
+      public void onError(FilePoint mFilePoint) {
+        WritableMap map = Arguments.createMap();
+        map.putString("url", mFilePoint.getUrl());
+        map.putString("path", mFilePoint.getFilePath());
+        map.putString("name", mFilePoint.getFileName());
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onError", map);
+      }
+    };
+  }
+
+  private ApkListener createApkListener(){
+    return new ApkListener() {
+      @Override
+      public void onInstall(String pkName) {
+        WritableMap map = Arguments.createMap();
+        map.putString("pkName", pkName);
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onInstall", map);
+      }
+
+      @Override
+      public void onDelete(String pkName) {
+        WritableMap map = Arguments.createMap();
+        map.putString("pkName", pkName);
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onDelete", map);
+      }
+
+      @Override
+      public void onReplace(String pkName) {
+        WritableMap map = Arguments.createMap();
+        map.putString("pkName", pkName);
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onReplace", map);
+      }
+
+      @Override
+      public void onNotPromission() {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onNotPromission", null);
       }
     };
   }

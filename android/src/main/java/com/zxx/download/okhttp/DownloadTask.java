@@ -78,20 +78,24 @@ public class DownloadTask{
                     case MSG_FINISH://完成
                         childFinshCount++;
                         if (childFinshCount % THREAD_COUNT != 0) return;
+                        // 完成收尾
+                        finish();
                         mListner.onFinished(mPoint);
                         break;
                     case MSG_CANCEL://取消
                         childCanleCount++;
                         if (childCanleCount % THREAD_COUNT != 0) return;
                         resetStutus();
-                        mListner.onCancel();
+                        mListner.onCancel(mPoint);
                         break;
                     case MSG_START://开始
-                        mListner.onStart();
+                        mListner.onStart(mPoint);
                         break;
                     case MSG_ERROR://失败
-                        mListner.onError();
+                        mListner.onError(mPoint);
                         break;
+                    case MSG_CANCEL_WIFI://非wifi
+                        mListner.onCancelWifi(mPoint);
                 }
             };
         };
@@ -213,8 +217,7 @@ public class DownloadTask{
                 //关闭资源
                 close(cacheAccessFile, is, response.body());
                 mTmpFile.renameTo(new File(mPoint.getFilePath(), mPoint.getFileName()));//下载完毕后，重命名目标文件名
-                // 完成收尾
-                finish();
+                mHandler.sendEmptyMessage(MSG_PROGRESS);
                 //发送完成消息
                 mHandler.sendEmptyMessage(MSG_FINISH);
             }

@@ -82,14 +82,18 @@ public class FileUtil {
 
         long size = 0;
         try {
-            java.io.File[] fileList = file.listFiles();
-            for (int i = 0; i < fileList.length; i++) {
-                if (fileList[i].isDirectory()) {
-                    size = size + getFolderSize(fileList[i]);
+            if(file.isDirectory()) {
+                java.io.File[] fileList = file.listFiles();
+                for (int i = 0; i < fileList.length; i++) {
+                    if (fileList[i].isDirectory()) {
+                        size = size + getFolderSize(fileList[i]);
 
-                } else {
-                    size = size + fileList[i].length();
+                    } else {
+                        size = size + fileList[i].length();
+                    }
                 }
+            }else{
+                size = size + file.length();
             }
         } catch (Exception e) {
             // TODO Auto-generated catch block

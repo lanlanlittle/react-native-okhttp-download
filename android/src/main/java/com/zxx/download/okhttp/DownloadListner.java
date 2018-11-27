@@ -27,20 +27,20 @@ public interface DownloadListner {
     /**
      * 取消下载
      */
-    void onCancel();
+    void onCancel(FilePoint mFilePoint);
 
     /**
      * 取消下载wifi
      */
-    void onCancelWifi();
+    void onCancelWifi(FilePoint mFilePoint);
 
     /**
      * 开始下载
      */
-    void onStart();
+    void onStart(FilePoint mFilePoint);
 
     /**
      * 下载出错
      */
-    void onError();
+    void onError(FilePoint mFilePoint);
 }

@@ -36,8 +36,8 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         // TODO Auto-generated method stub  
-        // 本来是判断24 7.0
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        // 判断24 7.0
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
             // 这个监听wifi的打开与关闭，与wifi的连接无关
             if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(intent.getAction())) {
                 dealConnect(context);

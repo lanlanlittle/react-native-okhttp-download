@@ -6,16 +6,39 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <application>
         <receiver android:name="com.zxx.download.okhttp.net.NetBroadcastReceiver">
-        <intent-filter> 
-            <action android:name="android.net.conn.CONNECTIVITY_CHANGE" /> 
-            <action android:name="android.net.wifi.RSSI_CHANGED" />
-            <action android:name="android.net.wifi.STATE_CHANGE" />
-            <action android:name="android.net.wifi.WIFI_STATE_CHANGED" /> 
-        </intent-filter>  
-    </receiver>
+            <intent-filter> 
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" /> 
+                <action android:name="android.net.wifi.RSSI_CHANGED" />
+                <action android:name="android.net.wifi.STATE_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" /> 
+            </intent-filter>  
+        </receiver>
+
+        <receiver
+            android:name="com.zxx.download.okhttp.apk.ApkBroadCastReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="com.zxx.download.FileProviderZxx"
+            android:authorities="${applicationId}.com.zxx.download.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths_zxx" />
+        </provider>
     </application>
 </manifest>
   
