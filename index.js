@@ -48,6 +48,10 @@ DeviceEventEmitter.addListener('onError', data => {
     Downloadok3.emitter.emit('DownloadListner', {type: 'onError', data: data});
 });
 
+DeviceEventEmitter.addListener('onFinished', data => {
+    Downloadok3.emitter.emit('DownloadListner', {type: 'onFinished', data: data});
+});
+
 /**
  * 安装监听
  * onInstall 安装成功
@@ -108,5 +112,17 @@ Downloadok3.openInstallUnknowSetting = () => {
 Downloadok3.getFileSize = (filePath) => {
     return RNDownload.getFileSize(filePath);
 }
+
+Downloadok3.getDefaultPathByUrl = ((url) => {
+    return RNDownload.getDefaultPathByUrl(url);
+})
+
+Downloadok3.isAppInstall = ((pkName) => {
+    return RNDownload.isAppInstall(pkName);
+})
+
+Downloadok3.openApp = ((pkName, txt) => {
+    RNDownload.openApp(pkName, txt);
+})
 
 export default Downloadok3;

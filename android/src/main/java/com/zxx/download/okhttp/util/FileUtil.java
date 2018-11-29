@@ -197,4 +197,9 @@ public class FileUtil {
     public static String getFileName(String url) {
         return url.substring(url.lastIndexOf("/") + 1);
     }
+
+    public static boolean isFileExist(String filePath){
+        File file = new File(filePath);
+        return file.exists();
+    }
 }

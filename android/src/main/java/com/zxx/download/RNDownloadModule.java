@@ -1,8 +1,13 @@
 package com.zxx.download;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.Arguments;
@@ -17,6 +22,7 @@ import com.zxx.download.okhttp.DownloadManager;
 import com.zxx.download.okhttp.FilePoint;
 import com.zxx.download.okhttp.apk.ApkListener;
 import com.zxx.download.okhttp.apk.ApkManager;
+import com.zxx.download.okhttp.util.ApkUtil;
 import com.zxx.download.okhttp.util.FileUtil;
 import com.zxx.download.okhttp.util.NetUtil;
 import com.zxx.download.okhttp.util.PermissionUtil;
@@ -24,6 +30,7 @@ import com.zxx.download.okhttp.util.PermissionUtil;
 import java.io.File;
 import java.security.Permission;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RNDownloadModule extends ReactContextBaseJavaModule {
@@ -155,6 +162,49 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
     WritableMap map = Arguments.createMap();
     map.putString("size", String.format("%d", size));
     promise.resolve(map);
+  }
+
+  /**
+   * 获取根据路径生成的默认下载路径
+   * @param url
+   */
+  @ReactMethod
+  public void getDefaultPathByUrl(String url, Promise promise){
+    String path = FileUtil.getDownloadDir(reactContext) + FileUtil.getFileName(url);
+    WritableMap map = Arguments.createMap();
+    map.putString("path", path);
+    promise.resolve(map);
+  }
+
+  /**
+   * 判断应用是否安装
+   * @param pkName
+   * @param promise
+   */
+  @ReactMethod
+  public void isAppInstall(String pkName, Promise promise){
+    WritableMap map = Arguments.createMap();
+    map.putBoolean("install", ApkUtil.isAppInstall(reactContext, pkName));
+    promise.resolve(map);
+  }
+
+  @ReactMethod
+  public void isFileExist(String filePath, Promise promise){
+    WritableMap map = Arguments.createMap();
+    map.putBoolean("exist", FileUtil.isFileExist(filePath));
+    promise.resolve(map);
+  }
+
+  @ReactMethod
+  public void openApp(String pkName, String txt){
+    if(ApkUtil.isAppInstall(reactContext, pkName)){
+      if(!TextUtils.isEmpty(txt))
+        Toast.makeText(reactContext, txt, Toast.LENGTH_SHORT);
+
+      ApkUtil.openApp(reactContext, pkName);
+    }else{
+      Toast.makeText(reactContext, "应用未安装", Toast.LENGTH_SHORT);
+    }
   }
 
   private DownloadListner createDownloadListener(){

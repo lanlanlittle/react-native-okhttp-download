@@ -4,10 +4,16 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.support.v4.content.FileProvider;
 import android.widget.Toast;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableMap;
 
 import org.json.JSONObject;
 
@@ -64,6 +70,51 @@ public class ApkUtil {
             }
 
             intent.setDataAndType(data, "application/vnd.android.package-archive");
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * 判断应用是否安装
+     * @param context
+     * @param pkName
+     * @return
+     */
+    public static boolean isAppInstall(Context context, String pkName){
+        PackageInfo packageInfo;
+        try {
+            packageInfo = context.getPackageManager().getPackageInfo(
+                    pkName, PackageManager.GET_ACTIVITIES);
+        } catch (PackageManager.NameNotFoundException e) {
+            packageInfo = null;
+            e.printStackTrace();
+        }
+        if(packageInfo ==null){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    public static void openApp(Context context, String pkName){
+        Intent resolveIntent = new Intent(Intent.ACTION_MAIN, null);
+        resolveIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        resolveIntent.setPackage(pkName);
+
+        List<ResolveInfo> apps = context.getPackageManager()
+                .queryIntentActivities(resolveIntent, 0);
+
+        ResolveInfo ri = apps.iterator().next();
+        if (ri != null) {
+            String packageName1 = ri.activityInfo.packageName;
+            String className = ri.activityInfo.name;
+
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ComponentName cn = new ComponentName(packageName1, className);
+
+            intent.setComponent(cn);
             context.startActivity(intent);
         }
     }
