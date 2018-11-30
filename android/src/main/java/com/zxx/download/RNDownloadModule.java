@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.Toast;
@@ -228,6 +229,7 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
         map.putString("path", mFilePoint.getFilePath());
         map.putString("name", mFilePoint.getFileName());
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onProgress", map);
+
       }
 
       @Override

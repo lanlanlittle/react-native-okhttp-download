@@ -63,7 +63,8 @@ public class DownloadTask{
         this.mCacheFiles = new File[THREAD_COUNT];
         this.mHttpUtil = HttpUtil.getInstance();
         this.manager = manager;
-        mHandler = new Handler() {
+        // 创建主线程handler
+        mHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(android.os.Message msg) {
                 super.handleMessage(msg);
@@ -197,6 +198,13 @@ public class DownloadTask{
                     if (cancel) {
                         //关闭资源
                         close(cacheAccessFile, is, response.body());
+                        mHandler.sendEmptyMessage(MSG_CANCEL);
+                        return;
+                    }
+                    if(cancelwifi){
+                        //关闭资源
+                        close(cacheAccessFile, is, response.body());
+                        mHandler.sendEmptyMessage(MSG_CANCEL_WIFI);
                         return;
                     }
                     tmpAccessFile.write(buffer, 0, length);
@@ -209,7 +217,7 @@ public class DownloadTask{
                     //发送进度消息
                     mProgress[threadId] = progress - startIndex;
                     // 500毫秒更新一次
-                    if (System.currentTimeMillis() - mLastTime > 1000/30) {
+                    if (System.currentTimeMillis() - mLastTime > 1000/10) {
                         mLastTime = System.currentTimeMillis();
                         mHandler.sendEmptyMessage(MSG_PROGRESS);
                     }
@@ -272,7 +280,6 @@ public class DownloadTask{
         if (isDownloading) {
             if (null != mListner) {
                 resetStutus();
-                mHandler.sendEmptyMessage(MSG_CANCEL);
             }
         }
     }
@@ -286,7 +293,6 @@ public class DownloadTask{
         if (isDownloading) {
             if (null != mListner) {
                 resetStutus();
-                mHandler.sendEmptyMessage(MSG_CANCEL_WIFI);
             }
         }
     }
