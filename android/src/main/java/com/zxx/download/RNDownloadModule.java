@@ -158,6 +158,9 @@ public class RNDownloadModule extends ReactContextBaseJavaModule {
    */
   @ReactMethod
   public void getFileSize(String filePath, Promise promise){
+    if(filePath == null){
+      filePath = FileUtil.getDownloadDir(reactContext);
+    }
     File file = new File(filePath);
     long size = FileUtil.getFolderSize(file);
     WritableMap map = Arguments.createMap();
